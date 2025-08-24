@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salary Predictor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Salary Prediction Tool</h1>
+        <p>Enter your information to get a salary prediction</p>
+        
+        <form id="prediction-form">
+            <div class="form-section">
+                <h2>Personal Information</h2>
+                <div class="form-group">
+                    <label for="Age">Age:</label>
+                    <input type="number" id="Age" name="Age" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="ExperienceYears">Years of Experience:</label>
+                    <input type="number" step="0.1" id="ExperienceYears" name="ExperienceYears" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="Certifications">Number of Certifications:</label>
+                    <input type="number" id="Certifications" name="Certifications" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="PreviousCompanies">Previous Companies:</label>
+                    <input type="number" id="PreviousCompanies" name="PreviousCompanies" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Gender:</label>
+                    <select id="Gender" name="Gender" required>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Non-binary">Non-binary</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h2>Job Information</h2>
+                <div class="form-group">
+                    <label for="CompanySize">Company Size (normalized):</label>
+                    <input type="number" step="0.01" id="CompanySize" name="CompanySize" required>
+                    <small>Enter a normalized value (e.g., -0.5 to 0.5)</small>
+                </div>
+                
+                <div class="form-group">
+                    <label>Job Title:</label>
+                    <select id="JobTitle" name="JobTitle" required>
+                        <option value="SoftwareEngineer">Software Engineer</option>
+                        <option value="DataScientist">Data Scientist</option>
+                        <option value="DataEngineer">Data Engineer</option>
+                        <option value="SeniorSoftwareEngineer">Senior Software Engineer</option>
+                        <option value="FullstackDeveloper">Fullstack Developer</option>
+                        <option value="LeadEngineer">Lead Engineer</option>
+                        <option value="SoftwareArchitect">Software Architect</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Industry:</label>
+                    <select id="Industry" name="Industry" required>
+                        <option value="Consulting">Consulting</option>
+                        <option value="Tech">Tech</option>
+                        <option value="Finance">Finance</option>
+                        <option value="Healthcare">Healthcare</option>
+                        <option value="Retail">Retail</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Education Level:</label>
+                    <select id="Education" name="Education" required>
+                        <option value="Bachelors">Bachelor's Degree</option>
+                        <option value="Masters">Master's Degree</option>
+                        <option value="PhD">PhD</option>
+                        <option value="Diploma">Diploma</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h2>Benefits & Location</h2>
+                <div class="form-group">
+                    <label>Remote/Onsite:</label>
+                    <select id="RemoteOnsite" name="RemoteOnsite" required>
+                        <option value="Onsite">Onsite</option>
+                        <option value="Remote">Remote</option>
+                        <option value="Hybrid">Hybrid</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Location:</label>
+                    <select id="Location" name="Location" required>
+                        <option value="India">India</option>
+                        <option value="USA">USA</option>
+                        <option value="UK">UK</option>
+                        <option value="Germany">Germany</option>
+                        <option value="Australia">Australia</option>
+                        <option value="Sweden">Sweden</option>
+                        <option value="SriLanka">Sri Lanka</option>
+                    </select>
+                </div>
+                
+                <div class="form-group checkbox-group">
+                    <label>Benefits:</label>
+                    <div>
+                        <input type="checkbox" id="CommuterSupport" name="CommuterSupport" value="1">
+                        <label for="CommuterSupport">Commuter Support</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" id="HealthInsurance" name="HealthInsurance" value="1">
+                        <label for="HealthInsurance">Health Insurance</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" id="FlexibleHours" name="FlexibleHours" value="1">
+                        <label for="FlexibleHours">Flexible Hours</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" id="Gym" name="Gym" value="1">
+                        <label for="Gym">Gym Membership</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" id="Bonus" name="Bonus" value="1">
+                        <label for="Bonus">Bonus</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" id="StockOptions" name="StockOptions" value="1">
+                        <label for="StockOptions">Stock Options</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" id="Retirement" name="Retirement" value="1">
+                        <label for="Retirement">Retirement Plan</label>
+                    </div>
+                </div>
+            </div>
+            
+            <button type="submit">Predict Salary</button>
+        </form>
+        
+        <div id="result" class="hidden">
+            <h2>Predicted Salary: <span id="prediction-value"></span></h2>
+        </div>
+        
+        <div id="error" class="hidden">
+            <h2>Error: <span id="error-message"></span></h2>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('prediction-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Hide previous results
+            document.getElementById('result').classList.add('hidden');
+            document.getElementById('error').classList.add('hidden');
+            
+            // Get form data
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData.entries());
+            
+            // Add categorical features based on selections
+            data['JobTitle_' + data.JobTitle] = '1';
+            data['Industry_' + data.Industry] = '1';
+            data['Education_' + data.Education] = '1';
+            data['RemoteOnsite_' + data.RemoteOnsite] = '1';
+            data['Location_' + data.Location] = '1';
+            
+            // Add gender (one-hot encoding)
+            const gender = data.Gender;
+            data['Gender_Male'] = gender === 'Male' ? '1' : '0';
+            data['Gender_Female'] = gender === 'Female' ? '1' : '0';
+            data['Gender_Non-binary'] = gender === 'Non-binary' ? '1' : '0';
+            
+            // Send prediction request
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('prediction-value').textContent = result.prediction;
+                    document.getElementById('result').classList.remove('hidden');
+                } else {
+                    document.getElementById('error-message').textContent = result.error;
+                    document.getElementById('error').classList.remove('hidden');
+                }
+            } catch (error) {
+                document.getElementById('error-message').textContent = 'Network error: ' + error.message;
+                document.getElementById('error').classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
