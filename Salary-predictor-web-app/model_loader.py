@@ -27,12 +27,12 @@ def load_model():
     # Load the model
     input_size = 41
     model = FullyConnectedNeuralNetwork(input_size)
-    model.load_state_dict(torch.load('optimized_model.pt', map_location=torch.device('cpu')))
+    model.load_state_dict(torch.load('models/optimized_model.pt', map_location=torch.device('cpu')))
     model.eval()
     
     # Load the scalers
-    scaler_X = joblib.load('scaler_X.pkl')
-    scaler_y = joblib.load('scaler_y.pkl')
+    scaler_X = joblib.load('models/feature_scaler.joblib')
+    scaler_y = joblib.load('models/target_scaler.joblib')
     
     return model, scaler_X, scaler_y
 

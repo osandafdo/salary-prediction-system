@@ -83,4 +83,4 @@ def process_form_data(form_data):
     return np.array([features])
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=5001)
