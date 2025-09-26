@@ -2,7 +2,10 @@ import torch
 import torch.nn as nn
 import numpy as np
 import joblib
+import os
+from pathlib import Path
 from sklearn.preprocessing import StandardScaler
+import shap
 
 # Define the model architecture
 class FullyConnectedNeuralNetwork(nn.Module):
@@ -24,17 +27,27 @@ class FullyConnectedNeuralNetwork(nn.Module):
         return x
 
 def load_model():
+    # Get current directory
+    current_dir = os.path.abspath(".")
+    parent_dir = Path(current_dir).parent
+    print(parent_dir)
+
     # Load the model
     input_size = 41
     model = FullyConnectedNeuralNetwork(input_size)
-    model.load_state_dict(torch.load('models/optimized_model.pt', map_location=torch.device('cpu')))
+    model.load_state_dict(torch.load(os.path.join(parent_dir, 'model', 'optimized_model.pt'), map_location=torch.device('cpu')))
     model.eval()
     
     # Load the scalers
-    scaler_X = joblib.load('models/feature_scaler.joblib')
-    scaler_y = joblib.load('models/target_scaler.joblib')
-    
-    return model, scaler_X, scaler_y
+    scaler_X = joblib.load(os.path.join(parent_dir, 'model', 'feature_scaler.joblib'))
+    scaler_y = joblib.load(os.path.join(parent_dir, 'model', 'target_scaler.joblib'))
+
+    ##### Load the X datasets
+    X_train_scaled = np.load(os.path.join(parent_dir, 'model', 'X_train_scaled.npy'))
+    X_val_scaled = np.load(os.path.join(parent_dir, 'model', 'X_val_scaled.npy'))
+    X_test_scaled = np.load(os.path.join(parent_dir, 'model', 'X_test_scaled.npy'))
+
+    return model, scaler_X, scaler_y, X_train_scaled, X_val_scaled, X_test_scaled
 
 def predict_salary(model, input_features, scaler_X, scaler_y):
     # Scale the input features
@@ -54,3 +67,22 @@ def predict_salary(model, input_features, scaler_X, scaler_y):
     predicted_usd = scaler_y.inverse_transform(predicted_scaled_np.reshape(-1, 1))
     
     return predicted_usd[0][0]
+
+def get_shap_values_for_model(input_features, model, scaler_X):
+    
+    # Use a subset of your training data as background
+    background = scaler_X[:100]  # Use 100 samples for background
+
+    # Convert to tensor
+    background_tensor = torch.tensor(background, dtype=torch.float32)
+
+    # Create DeepExplainer
+    explainer = shap.DeepExplainer(model, background_tensor)
+
+    # Calculate SHAP values
+    X_test_scaled_tensor = torch.tensor(scaler_X, dtype=torch.float32)
+    shap_values = explainer(X_test_scaled_tensor)
+
+    print(f"SHAP values shape: {np.shape(shap_values)}")
+    
+    return shap_values, explainer
