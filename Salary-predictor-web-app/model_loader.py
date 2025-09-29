@@ -30,7 +30,8 @@ def load_model():
     # Get current directory
     current_dir = os.path.abspath(".")
     parent_dir = Path(current_dir).parent
-    print(parent_dir)
+    #print(parent_dir)
+    print(os.path.join(parent_dir, 'model', 'optimized_model.pt'))
 
     # Load the model
     input_size = 41
@@ -49,7 +50,7 @@ def load_model():
 
     return model, scaler_X, scaler_y, X_train_scaled, X_val_scaled, X_test_scaled
 
-def predict_salary(model, input_features, scaler_X, scaler_y):
+def predict_salary(model, explainer, input_features, scaler_X, scaler_y):
     # Scale the input features
     input_scaled = scaler_X.transform(input_features)
     
@@ -65,24 +66,34 @@ def predict_salary(model, input_features, scaler_X, scaler_y):
     
     # Inverse transform to get the value in original USD units
     predicted_usd = scaler_y.inverse_transform(predicted_scaled_np.reshape(-1, 1))
+
+    ## SHAP calculation for the waterfall plot
+    shap_values_input = explainer(input_tensor)
+
+    # # 4. Prepare waterfall explanation
+    input_vector = input_tensor.numpy()[0]            # 1D array for SHAP
+    # exp = shap.Explanation(
+    #     values=shap_values_input.values[0].squeeze(),
+    #     base_values=explainer.expected_value[0],
+    #     data=input_vector,
+    #     feature_names=feature_names
     
-    return predicted_usd[0][0]
+    return predicted_usd[0][0], shap_values_input, explainer, input_vector
 
-def get_shap_values_for_model(input_features, model, scaler_X):
-    
-    # Use a subset of your training data as background
-    background = scaler_X[:100]  # Use 100 samples for background
+def get_shap_values_for_model(model, X_train_scaled):
 
-    # Convert to tensor
-    background_tensor = torch.tensor(background, dtype=torch.float32)
+   # Background data
+    background_tensor = torch.tensor(X_train_scaled[:100], dtype=torch.float32)
 
-    # Create DeepExplainer
+    # Create SHAP Explainer
     explainer = shap.DeepExplainer(model, background_tensor)
 
-    # Calculate SHAP values
-    X_test_scaled_tensor = torch.tensor(scaler_X, dtype=torch.float32)
-    shap_values = explainer(X_test_scaled_tensor)
+    # Explain test data
+    X_trained_scaled_tensor = torch.tensor(X_train_scaled[:100], dtype=torch.float32)
+    shap_values = explainer(X_trained_scaled_tensor)   # returns Explanation object
 
-    print(f"SHAP values shape: {np.shape(shap_values)}")
+    # shap_values is not a tensor, but an Explanation
+    print(type(shap_values))  
+    print(shap_values.shape)   # works like NumPy shape
     
     return shap_values, explainer
