@@ -100,7 +100,7 @@ def all_plots():
     # --- 1. Summary plot ---
     shap.summary_plot(
         shap_values.values.squeeze(),
-        X_test_scaled[:100],
+        X_test_scaled[:500],
         feature_names=get_feature_names(),
         plot_size=(12, 12),
         max_display=20,
@@ -116,7 +116,7 @@ def all_plots():
     # --- 2. Bar plot ---
     shap.summary_plot(
         shap_values.values.squeeze(),
-        X_test_scaled[:100],
+        X_test_scaled[:500],
         feature_names=get_feature_names(),
         plot_size=(12, 12),
         max_display=20,

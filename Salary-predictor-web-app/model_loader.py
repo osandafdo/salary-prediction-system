@@ -11,20 +11,33 @@ import shap
 class FullyConnectedNeuralNetwork(nn.Module):
     def __init__(self, input_size):
         super().__init__()
-        self.layer_1 = nn.Linear(input_size, 128)
-        self.activation_1 = nn.ReLU()
-        self.layer_2 = nn.Linear(128, 64)
-        self.activation_2 = nn.ReLU()
-        self.layer_3 = nn.Linear(64, 32)
-        self.activation_3 = nn.ReLU()
-        self.layer_4 = nn.Linear(32, 1)
-        
+
+        self.network = nn.Sequential(
+
+            #First Layer
+            nn.Linear(input_size, 128),     # Input layer to 128 neurons
+            nn.BatchNorm1d(128),
+            nn.ReLU(),       # ReLU activation function
+            nn.Dropout(p=0.2),
+
+            # Second Layer
+            nn.Linear(128, 64),    # 128 neurons to 64 neurons
+            nn.BatchNorm1d(64),
+            nn.ReLU(),       # Another ReLU
+            nn.Dropout(p=0.2),
+
+            # Third Layer
+            nn.Linear(64, 32),    # 64 neurons to 32 neurons
+            nn.BatchNorm1d(32),
+            nn.ReLU(),       # Another ReLU
+            nn.Dropout(p=0.2),
+
+            # Fourth and the final Layer
+            nn.Linear(32, 1),     # Output layer to 1 neurons (classes)
+        )
+
     def forward(self, x):
-        x = self.activation_1(self.layer_1(x))
-        x = self.activation_2(self.layer_2(x))
-        x = self.activation_3(self.layer_3(x))
-        x = self.layer_4(x)
-        return x
+        return self.network(x)
 
 def load_model():
     # Get current directory
@@ -70,26 +83,24 @@ def predict_salary(model, explainer, input_features, scaler_X, scaler_y):
     ## SHAP calculation for the waterfall plot
     shap_values_input = explainer(input_tensor)
 
-    # # 4. Prepare waterfall explanation
+    # Change the input vector to 1D array
     input_vector = input_tensor.numpy()[0]            # 1D array for SHAP
-    # exp = shap.Explanation(
-    #     values=shap_values_input.values[0].squeeze(),
-    #     base_values=explainer.expected_value[0],
-    #     data=input_vector,
-    #     feature_names=feature_names
     
+    # inverse transform the input data to original scale for SHAP plotting
+    # input_original = scaler_y.inverse_transform(input_scaled)
+
     return predicted_usd[0][0], shap_values_input, explainer, input_vector
 
 def get_shap_values_for_model(model, X_train_scaled):
 
    # Background data
-    background_tensor = torch.tensor(X_train_scaled[:100], dtype=torch.float32)
+    background_tensor = torch.tensor(X_train_scaled[:500], dtype=torch.float32)
 
     # Create SHAP Explainer
     explainer = shap.DeepExplainer(model, background_tensor)
 
     # Explain test data
-    X_trained_scaled_tensor = torch.tensor(X_train_scaled[:100], dtype=torch.float32)
+    X_trained_scaled_tensor = torch.tensor(X_train_scaled[:500], dtype=torch.float32)
     shap_values = explainer(X_trained_scaled_tensor)   # returns Explanation object
 
     # shap_values is not a tensor, but an Explanation
